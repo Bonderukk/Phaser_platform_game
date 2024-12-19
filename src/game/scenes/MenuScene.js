@@ -23,7 +23,7 @@ export default class MenuScene extends Phaser.Scene {
             text.setInteractive({ useHandCursor: true });
 
             text.on('pointerup', () => {
-                this.scene.start('main', { difficulty: diff.value });
+                this.scene.start('controls', { difficulty: diff.value });
             });
 
             text.on('pointerover', () => {

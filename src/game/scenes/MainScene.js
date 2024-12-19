@@ -6,8 +6,8 @@ export default class MainScene extends Phaser.Scene {
     }
 
     init(data) {
-        // data.difficulty bude obsahovať vybraný semester (1-6)
         this.selectedDifficulty = data.difficulty || 1;
+        this.controlMethod = data.controlMethod || 'mouse';
     }
 
     preload() {
@@ -32,23 +32,51 @@ export default class MainScene extends Phaser.Scene {
         this.player.setVelocityY(-600);
 
         this.maxHorizontalVelocity = 300;
+
+        // Nastavíme klávesové vstupy
+        if (this.controlMethod === 'keyboard') {
+            this.cursors = this.input.keyboard.createCursorKeys();
+            this.keys = this.input.keyboard.addKeys({
+                'A': Phaser.Input.Keyboard.KeyCodes.A,
+                'D': Phaser.Input.Keyboard.KeyCodes.D
+            });
+        }
     }
 
     update() {
-        const pointer = this.input.activePointer;
+        if (this.controlMethod === 'mouse') {
+            // Ovládanie myšou
+            const pointer = this.input.activePointer;
+            const dx = pointer.x - this.player.x;
+            const speedFactor = 2;
+            let newVelocityX = dx * speedFactor;
 
-        const dx = pointer.x - this.player.x;
+            if (newVelocityX > this.maxHorizontalVelocity) {
+                newVelocityX = this.maxHorizontalVelocity;
+            } else if (newVelocityX < -this.maxHorizontalVelocity) {
+                newVelocityX = -this.maxHorizontalVelocity;
+            }
+            this.player.setVelocityX(newVelocityX);
 
-        const speedFactor = 2;
-        let newVelocityX = dx * speedFactor;
+        } else if (this.controlMethod === 'keyboard') {
+            // Ovládanie klávesnicou
+            let velocityX = 0;
 
-        // Obmedzíme maximálnu rýchlosť, aby hráč neletel príliš rýchlo
-        if (newVelocityX > this.maxHorizontalVelocity) {
-            newVelocityX = this.maxHorizontalVelocity;
-        } else if (newVelocityX < -this.maxHorizontalVelocity) {
-            newVelocityX = -this.maxHorizontalVelocity;
+            // Šípky
+            if (this.cursors.left.isDown) {
+                velocityX = -this.maxHorizontalVelocity;
+            } else if (this.cursors.right.isDown) {
+                velocityX = this.maxHorizontalVelocity;
+            }
+
+            // A/D
+            if (this.keys.A.isDown) {
+                velocityX = -this.maxHorizontalVelocity;
+            } else if (this.keys.D.isDown) {
+                velocityX = this.maxHorizontalVelocity;
+            }
+
+            this.player.setVelocityX(velocityX);
         }
-
-        this.player.setVelocityX(newVelocityX);
     }
 }
