@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import data from '../difficulties.json';
 
 export default class MenuScene extends Phaser.Scene {
     constructor() {
@@ -9,14 +10,7 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        const difficulties = [
-            { label: '1. semester', value: 1 },
-            { label: '2. semester', value: 2 },
-            { label: '3. semester', value: 3 },
-            { label: '4. semester', value: 4 },
-            { label: '5. semester', value: 5 },
-            { label: '6. semester', value: 5 }
-        ];
+        const difficulties = data.difficulties;
 
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
