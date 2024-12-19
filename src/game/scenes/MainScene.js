@@ -5,13 +5,17 @@ export default class MainScene extends Phaser.Scene {
         super('main');
     }
 
+    init(data) {
+        // data.difficulty bude obsahovať vybraný semester (1-6)
+        this.selectedDifficulty = data.difficulty || 1;
+    }
+
     preload() {
         // načítanie assetov
     }
 
     create() {
-        // inicializácia herných objektov
-        this.add.text(100, 100, 'Hello from Phaser', { font: '24px Arial', fill: '#ffffff' });
+        this.add.text(10, 10, `Zvolená obtiažnosť: ${this.selectedDifficulty}. semester`, { font: '20px Arial', fill: '#fff' });
     }
 
     update() {
