@@ -1,37 +1,30 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import appLogo from '/favicon.svg'
+import React, { useEffect, useRef } from 'react';
+import { createGame } from './game';
 import PWABadge from './PWABadge.jsx'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+    const gameContainerRef = useRef(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={appLogo} className="logo" alt="Záverečné zadanie logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Záverečné zadanie</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <PWABadge />
-    </>
-  )
+    useEffect(() => {
+        // Keď je komponent mounted, spustíme Phaser hru
+        const game = createGame(gameContainerRef.current);
+
+        // Pri unmounte hru odstránime
+        return () => {
+            game.destroy(true);
+        };
+    }, []);
+
+    return (
+        <>
+            <div>
+              <h1>FEI Jump</h1>
+              <div id="game-container" ref={gameContainerRef} style={{width: '800px', height: '600px'}}/>
+            </div>
+            <PWABadge/>
+        </>
+    )
 }
 
 export default App
