@@ -24,21 +24,31 @@ export default class MainScene extends Phaser.Scene {
         const centerX = this.cameras.main.width / 2;
         const groundY = this.cameras.main.height - 50;
 
-        this.player = this.physics.add.sprite(centerX, groundY, 'player');
+        this.player = this.physics.add.sprite(centerX, groundY, 'player')
+            .setCollideWorldBounds(true)
+            .setGravityY(300)
+            .setBounce(1);
 
-        // Nastavíme kolízie s hranicami sveta
-        this.player.setCollideWorldBounds(true);
+        this.player.setVelocityY(-600);
 
-        // Nastavíme gravitáciu
-        this.player.setGravityY(500);
-
-        // Nastavíme odraz (bounce) pri dopade na spodnú hranu
-        this.player.setBounce(1);
-
-        this.player.setVelocityY(-700);
+        this.maxHorizontalVelocity = 300;
     }
 
     update() {
-        // herná logika
+        const pointer = this.input.activePointer;
+
+        const dx = pointer.x - this.player.x;
+
+        const speedFactor = 2;
+        let newVelocityX = dx * speedFactor;
+
+        // Obmedzíme maximálnu rýchlosť, aby hráč neletel príliš rýchlo
+        if (newVelocityX > this.maxHorizontalVelocity) {
+            newVelocityX = this.maxHorizontalVelocity;
+        } else if (newVelocityX < -this.maxHorizontalVelocity) {
+            newVelocityX = -this.maxHorizontalVelocity;
+        }
+
+        this.player.setVelocityX(newVelocityX);
     }
 }
