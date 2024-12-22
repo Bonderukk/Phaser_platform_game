@@ -19,8 +19,7 @@ function App() {
     return (
         <>
             <div>
-              <h1>FEI Jump</h1>
-              <div id="game-container" ref={gameContainerRef} style={{width: '800px', height: '600px'}}/>
+              <div id="game-container" ref={gameContainerRef}/>
             </div>
             <PWABadge/>
         </>
