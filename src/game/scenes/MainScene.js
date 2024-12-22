@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 export default class MainScene extends Phaser.Scene {
     constructor() {
         super('main');
+        this.gyroHandler = this.gyroHandler.bind(this);
     }
 
     init(data) {
@@ -40,6 +41,33 @@ export default class MainScene extends Phaser.Scene {
                 'A': Phaser.Input.Keyboard.KeyCodes.A,
                 'D': Phaser.Input.Keyboard.KeyCodes.D
             });
+        } else if (this.controlMethod === 'gyroscope') {
+            window.addEventListener('deviceorientation', this.gyroHandler);
+        }
+
+        // this.debugText = this.add.text(10, 50, 'Debug log:', { font: '16px Arial', fill: '#fff' });
+    }
+
+    // Handler pre gyroskop
+    gyroHandler(event) {
+        // gamma: náklon do strán (od -90 do 90)
+        // Pozitívna gamma: telefón naklonený doprava
+        // Negatívna gamma: telefón naklonený doľava
+        const gamma = event.gamma || 0;
+        // Napr. gamma 0 = žiadne naklonenie, gamma 20 = naklonenie doprava
+        const speedFactor = 10;
+        let newVelocityX = gamma * speedFactor;
+
+        if (newVelocityX > this.maxHorizontalVelocity) {
+            newVelocityX = this.maxHorizontalVelocity;
+        } else if (newVelocityX < -this.maxHorizontalVelocity) {
+            newVelocityX = -this.maxHorizontalVelocity;
+        }
+
+        // this.debugText.setText(`gamma: ${gamma.toFixed(2)}\nvelocityX: ${newVelocityX.toFixed(2)}`);
+
+        if (this.player && this.player.body) {
+            this.player.setVelocityX(newVelocityX);
         }
     }
 
@@ -78,5 +106,14 @@ export default class MainScene extends Phaser.Scene {
 
             this.player.setVelocityX(velocityX);
         }
+    }
+
+    shutdown() {
+        window.removeEventListener('deviceorientation', this.gyroHandler);
+    }
+
+    destroy() {
+        super.destroy();
+        window.removeEventListener('deviceorientation', this.gyroHandler);
     }
 }
