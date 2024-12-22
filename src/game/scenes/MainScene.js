@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
+import PlatformGenerator from '../PlatformGenerator';
 
 export default class MainScene extends Phaser.Scene {
     constructor() {
         super('main');
         this.gyroHandler = this.gyroHandler.bind(this);
+        this.highestY = 0; // Track the highest point reached
     }
 
     init(data) {
@@ -13,23 +15,77 @@ export default class MainScene extends Phaser.Scene {
 
     preload() {
         this.load.image('player', 'game/assets/player.png');
+        this.load.image('platform', 'game/assets/platform.png');
     }
 
     create() {
         this.add.text(10, 10, `Zvolená obtiažnosť: ${this.selectedDifficulty}. semester`, { font: '20px Arial', fill: '#fff' });
 
-        // Nastavíme fyziku pre scénu
-        this.physics.world.setBounds(0, 0, this.cameras.main.width, this.cameras.main.height);
+        // Set world and camera bounds first
+        this.physics.world.setBounds(0, -2000, this.cameras.main.width, this.cameras.main.height + 2500);
 
-        // Pridáme hráča doprostred spodnej časti obrazovky
+        // Create platform generator and platforms before player
+        this.platformGenerator = new PlatformGenerator(this, this.selectedDifficulty);
+        const [platforms, movingPlatforms] = this.platformGenerator.generatePlatforms();
+
+        // Start player just above the bottom platform
         const centerX = this.cameras.main.width / 2;
-        const groundY = this.cameras.main.height - 50;
+        const startY = this.cameras.main.height - 150; // Moved higher up
 
-        this.player = this.physics.add.sprite(centerX, groundY, 'player')
+        this.player = this.physics.add.sprite(centerX, startY, 'player')
             .setCollideWorldBounds(true)
             .setGravityY(300)
-            .setBounce(1);
+            .setBounce(0);
+        
+        // Add collision between player and both platform groups
+        this.physics.add.collider(this.player, platforms, (player, platform) => {
+            if (player.body.touching.down) {
+                if (platform.isFinish) {
+                    this.handleLevelComplete();
+                } else {
+                    player.setVelocityY(-600);
+                    
+                    // Make platform disappear if it's marked as disappearing
+                    if (platform.isDisappearing) {
+                        this.tweens.add({
+                            targets: platform,
+                            alpha: 0,
+                            duration: 200,
+                            onComplete: () => {
+                                platform.destroy();
+                            }
+                        });
+                    }
+                }
+            }
+        });
 
+        this.physics.add.collider(this.player, movingPlatforms, (player, platform) => {
+            if (player.body.touching.down) {
+                player.setVelocityY(-600);
+                
+                // Make platform disappear if it's marked as disappearing
+                if (platform.isDisappearing) {
+                    this.tweens.add({
+                        targets: platform,
+                        alpha: 0,
+                        duration: 200,
+                        onComplete: () => {
+                            platform.destroy();
+                        }
+                    });
+                }
+            }
+        });
+        
+        // Store initial player Y position as highest
+        this.highestY = this.cameras.main.scrollY + (this.cameras.main.height * 2/3);
+        
+        // Set camera bounds to match world bounds
+        this.cameras.main.setBounds(0, -2000, this.cameras.main.width, this.cameras.main.height + 2500);
+        
+
+        // Initial jump
         this.player.setVelocityY(-600);
 
         this.maxHorizontalVelocity = 300;
@@ -72,6 +128,20 @@ export default class MainScene extends Phaser.Scene {
     }
 
     update() {
+        // Check if player has fallen below camera view
+        const cameraBottom = this.cameras.main.scrollY + this.cameras.main.height;
+        
+        if (this.player.y > cameraBottom) {
+            this.handlePlayerDeath();
+            return;
+        }
+
+        // Update camera position to follow player only upwards
+        const targetY = this.player.y - (this.cameras.main.height * 2/3);
+        if (targetY < this.cameras.main.scrollY) {
+            this.cameras.main.scrollY = targetY;
+        }
+
         if (this.controlMethod === 'mouse') {
             // Ovládanie myšou
             const pointer = this.input.activePointer;
@@ -115,5 +185,69 @@ export default class MainScene extends Phaser.Scene {
     destroy() {
         super.destroy();
         window.removeEventListener('deviceorientation', this.gyroHandler);
+    }
+
+    handleLevelComplete() {
+        // Stop player movement
+        this.player.setVelocity(0, 0);
+        this.player.body.allowGravity = false;
+
+        // Create victory overlay
+        const overlay = this.add.rectangle(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000,
+            0.7
+        );
+        overlay.setScrollFactor(0);
+
+        // Add victory text
+        const victoryText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 50,
+            `${this.selectedDifficulty}. semester dokončený!`,
+            { font: '32px Arial', fill: '#fff' }
+        );
+        victoryText.setOrigin(0.5);
+        victoryText.setScrollFactor(0);
+
+        // Add continue button
+        const nextLevel = this.selectedDifficulty + 1;
+        const buttonText = nextLevel <= 5 ? 'Ďalší semester' : 'Späť do menu';
+        
+        const continueButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 50,
+            buttonText,
+            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
+        );
+        continueButton.setOrigin(0.5);
+        continueButton.setScrollFactor(0);
+        continueButton.setInteractive({ useHandCursor: true });
+
+        continueButton.on('pointerup', () => {
+            if (nextLevel <= 5) {
+                this.scene.start('main', { 
+                    difficulty: nextLevel,
+                    controlMethod: this.controlMethod 
+                });
+            } else {
+                this.scene.start('menu');
+            }
+        });
+
+        // Add hover effect
+        continueButton.on('pointerover', () => continueButton.setStyle({ fill: '#ffff00' }));
+        continueButton.on('pointerout', () => continueButton.setStyle({ fill: '#ffffff' }));
+    }
+
+    handlePlayerDeath() {
+        // Reset to the same level
+        this.scene.restart({
+            difficulty: this.selectedDifficulty,
+            controlMethod: this.controlMethod
+        });
     }
 }
