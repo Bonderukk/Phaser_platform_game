@@ -20,6 +20,25 @@ export default class MenuScene extends Phaser.Scene {
 
         this.isMobile = isMobileDevice();
 
+        if (this.isMobile) {
+            const questionMark = this.add.text(
+                this.cameras.main.width - 100,
+                50,
+                '?',
+                {
+                    font: '50px Arial',
+                    fill: '#ff0',
+                }
+            );
+
+            questionMark.setOrigin(1, 0); // zarovnať vpravo hore
+            questionMark.setInteractive({ useHandCursor: true });
+
+            questionMark.on('pointerup', () => {
+                this.showInstructionsOverlay();
+            });
+        }
+
         difficulties.forEach((diff, index) => {
             const yPos = startY + index * 30;
             const text = this.add.text(centerX, yPos, diff.label, { font: '20px Arial', fill: '#ffffff' });
@@ -84,5 +103,55 @@ export default class MenuScene extends Phaser.Scene {
             'Povolenie zamietnuté :(',
             { font: '18px Arial', fill: '#ff0000' }
         ).setOrigin(0.5);
+    }
+
+    showInstructionsOverlay() {
+        const overlay = this.add.rectangle(
+            0,
+            0,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000
+        )
+            .setOrigin(0)
+            .setAlpha(0.8)
+
+        const instructionsText =
+            `Popis hry
+FEI Jump je jednoduchá skákacia hra. Cieľom hry je dostať sa na finálnu platformu bez toho, aby ste spadli.
+
+Ovládanie:
+  • Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.
+  • Klávesnica (desktop): Šípky vľavo/vpravo alebo klávesy A/D na pohyb.
+  • Gyroskop (mobil): Nakláňajte telefón, aby sa panáčik pohyboval doľava či doprava.
+`;
+
+        const instructions = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2,
+            instructionsText,
+            {
+                font: '20px Arial',
+                fill: '#ffffff',
+                align: 'center',
+                wordWrap: { width: this.cameras.main.width * 0.8 }
+            }
+        )
+            .setOrigin(0.5);
+
+        const closeText = this.add.text(
+            this.cameras.main.width / 2,
+            instructions.y + instructions.displayHeight / 2 + 40,
+            'Zavrieť',
+            { font: '24px Arial', fill: '#ff4444' }
+        )
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true });
+
+        closeText.on('pointerup', () => {
+            overlay.destroy();
+            instructions.destroy();
+            closeText.destroy();
+        });
     }
 }
