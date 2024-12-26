@@ -1,10 +1,6 @@
 import Phaser from 'phaser';
 import data from '../difficulties.json';
-
-function isMobileDevice() {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    return /Mobi|Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry|Opera Mini/i.test(userAgent);
-}
+import {isMobileDevice} from "../../utils/isMobileDevice.js";
 
 export default class MenuScene extends Phaser.Scene {
     constructor() {

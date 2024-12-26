@@ -2,11 +2,7 @@ import Phaser from 'phaser';
 import MenuScene from './scenes/MenuScene';
 import ControlsScene from './scenes/ControlsScene';
 import MainScene from './scenes/MainScene';
-
-function isMobileDevice() {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    return /Mobi|Android|iPhone|iPad|iPod|Windows Phone|webOS|BlackBerry|Opera Mini/i.test(userAgent);
-}
+import {isMobileDevice} from "../utils/isMobileDevice.js";
 
 export function createGame(containerId) {
     const isMobile = isMobileDevice();
