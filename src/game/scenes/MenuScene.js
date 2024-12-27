@@ -11,7 +11,9 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor('#1a237e'); 
+        // Set background color to blue
+        this.cameras.main.setBackgroundColor('#1a237e');  // Same deep blue as Level 1
+
         const difficulties = data.difficulties;
 
         const centerX = this.cameras.main.width / 2;
@@ -62,6 +64,7 @@ export default class MenuScene extends Phaser.Scene {
                             if (permissionState === 'granted') {
                                 // Máme povolenie, môžeme ísť do MainScene
                                 this.scene.start('main', {
+                                    level: diff.value,
                                     difficulty: diff.value,
                                     controlMethod: 'gyroscope'
                                 });
@@ -76,6 +79,7 @@ export default class MenuScene extends Phaser.Scene {
                     } else {
                         // Staršie iOS alebo Android, kde netreba requestPermission
                         this.scene.start('main', {
+                            level: diff.value,
                             difficulty: diff.value,
                             controlMethod: 'gyroscope'
                         });
@@ -97,6 +101,7 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     // Zobrazí upozornenie, že používateľ odmietol prístup k gyroskopu
+    /*showDeniedMessage() {
     showDeniedMessage() {
         const msg = this.add.text(
             this.cameras.main.width / 2,
@@ -104,7 +109,9 @@ export default class MenuScene extends Phaser.Scene {
             'Povolenie zamietnuté :(',
             { font: '18px Arial', fill: '#ff0000' }
         ).setOrigin(0.5);
-    }
+
+    }*/
+    
 
     showInstructionsOverlay() {
         const overlay = this.add.rectangle(
