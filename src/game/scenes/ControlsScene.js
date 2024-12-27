@@ -24,11 +24,11 @@ export default class ControlsScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true });
 
         mouseText.on('pointerup', () => {
-            this.scene.start('main', { level: this.selectedDifficulty, controlMethod: 'mouse' });
+            this.scene.start('main', { difficulty: this.selectedDifficulty, controlMethod: 'mouse' });
         });
 
         keyboardText.on('pointerup', () => {
-            this.scene.start('main', { level: this.selectedDifficulty, controlMethod: 'keyboard' });
+            this.scene.start('main', { difficulty: this.selectedDifficulty, controlMethod: 'keyboard' });
         });
 
         const hoverIn = (txt) => txt.setStyle({ fill: '#ff0' });

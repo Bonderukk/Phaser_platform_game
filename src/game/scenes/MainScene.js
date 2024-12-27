@@ -20,6 +20,7 @@ export default class MainScene extends Phaser.Scene {
         this.load.image('platform', 'game/assets/platform.png');
         this.load.image('powerUp', 'game/assets/boost_smaller.png');
         this.load.image('slowFallPowerUp', 'game/assets/cigy_small.png'); // New power-up image
+        this.load.image('pauseButton', 'game/assets/pause-button.png');
     }
 
     create() {
@@ -116,8 +117,18 @@ export default class MainScene extends Phaser.Scene {
             window.addEventListener('deviceorientation', this.gyroHandler);
         }
 
-        // this.debugText = this.add.text(10, 50, 'Debug log:', { font: '16px Arial', fill: '#fff' });
+        this.pauseButton = this.add.image(
+            this.cameras.main.width - 50,
+            50,
+            'pauseButton'
+        )
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: true });
 
+        this.pauseButton.on('pointerup', () => {
+            this.showPauseMenu();
+        });
         // Add power-up collision
         this.physics.add.overlap(this.player, powerUps, this.collectPowerUp, null, this);
 
@@ -346,4 +357,68 @@ export default class MainScene extends Phaser.Scene {
             this.player.setVelocityY(jumpVelocity);
         }
     }
+
+    showPauseMenu() {
+        // Pozastavíme fyziku v hre, aby sa hráč a platformy prestali hýbať.
+        this.physics.world.pause();
+        // Vytvoríme overlay
+        this.pauseOverlay = this.add.rectangle(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000,
+            0.7
+        );
+        this.pauseOverlay.setOrigin(0.5);
+        this.pauseOverlay.setScrollFactor(0);
+        this.pauseText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 100,
+            'Hra je pozastavená',
+            { font: '32px Arial', fill: '#fff' }
+        );
+        this.pauseText.setOrigin(0.5);
+        this.pauseText.setScrollFactor(0);
+        // Vytvoríme tlačidlo "Ukončiť hru"
+        this.quitButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 80,
+            'Ukončiť hru',
+            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
+        );
+        this.quitButton.setOrigin(0.5);
+        this.quitButton.setScrollFactor(0);
+        this.quitButton.setInteractive({ useHandCursor: true });
+        this.quitButton.on('pointerup', () => {
+            this.scene.start('menu');
+        });
+        // Vytvoríme tlačidlo "Pokračovať"
+        this.continueButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            'Pokračovať',
+            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
+        );
+        this.continueButton.setOrigin(0.5);
+        this.continueButton.setScrollFactor(0);
+        this.continueButton.setInteractive({ useHandCursor: true });
+        this.continueButton.on('pointerup', () => {
+            this.resumeGame();
+        });
+        this.pauseButton.setVisible(false);
+    }
+    // Metóda na pokračovanie v hre
+    resumeGame() {
+        // Zmažeme overlay a texty
+        this.pauseOverlay.destroy();
+        this.pauseText.destroy();
+        this.quitButton.destroy();
+        this.continueButton.destroy();
+        // Obnovíme fyziku
+        this.physics.world.resume();
+        // Opäť zobrazíme "pause" tlačidlo
+        this.pauseButton.setVisible(true);
+    }
+
 }

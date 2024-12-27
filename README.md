@@ -6,3 +6,4 @@ https://phaser.io
 
 Icons:
 https://www.flaticon.com/free-icons/student
+https://www.flaticon.com/free-icons/pause
