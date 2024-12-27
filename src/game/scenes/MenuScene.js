@@ -15,6 +15,9 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
+        // Set background color to blue
+        this.cameras.main.setBackgroundColor('#1a237e');  // Same deep blue as Level 1
+
         const difficulties = data.difficulties;
 
         const centerX = this.cameras.main.width / 2;
@@ -46,7 +49,7 @@ export default class MenuScene extends Phaser.Scene {
                             if (permissionState === 'granted') {
                                 // Máme povolenie, môžeme ísť do MainScene
                                 this.scene.start('main', {
-                                    difficulty: diff.value,
+                                    level: diff.value,
                                     controlMethod: 'gyroscope'
                                 });
                             } else {
@@ -60,7 +63,7 @@ export default class MenuScene extends Phaser.Scene {
                     } else {
                         // Staršie iOS alebo Android, kde netreba requestPermission
                         this.scene.start('main', {
-                            difficulty: diff.value,
+                            level: diff.value,
                             controlMethod: 'gyroscope'
                         });
                     }

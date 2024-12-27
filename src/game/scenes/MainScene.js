@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import PlatformGenerator from '../PlatformGenerator';
+import levelConfig from '../levelConfig';
 
 export default class MainScene extends Phaser.Scene {
     constructor() {
@@ -9,24 +10,34 @@ export default class MainScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.selectedDifficulty = data.difficulty || 1;
+        this.level = data.level || 1;
+        this.semester = data.semester || 1;
         this.controlMethod = data.controlMethod || 'mouse';
     }
 
     preload() {
         this.load.image('player', 'game/assets/player.png');
         this.load.image('platform', 'game/assets/platform.png');
+        this.load.image('powerUp', 'game/assets/boost_smaller.png');
+        this.load.image('slowFallPowerUp', 'game/assets/cigy_small.png'); // New power-up image
     }
 
     create() {
-        this.add.text(10, 10, `Zvolená obtiažnosť: ${this.selectedDifficulty}. semester`, { font: '20px Arial', fill: '#fff' });
+        // Get the background color from levelConfig
+        const levelData = levelConfig.levels.find(l => l.id === this.level);
+        
+        // Set background color
+        this.cameras.main.setBackgroundColor(levelData.background);
 
-        // Set world and camera bounds first
-        this.physics.world.setBounds(0, -2000, this.cameras.main.width, this.cameras.main.height + 2500);
+        this.add.text(10, 10, `Level ${this.level}`, { font: '20px Arial', fill: '#fff' });
 
-        // Create platform generator and platforms before player
-        this.platformGenerator = new PlatformGenerator(this, this.selectedDifficulty);
-        const [platforms, movingPlatforms] = this.platformGenerator.generatePlatforms();
+        // Set world bounds for all five semesters
+        this.physics.world.setBounds(0, -8200, this.cameras.main.width, this.cameras.main.height + 8700);
+        this.cameras.main.setBounds(0, -8200, this.cameras.main.width, this.cameras.main.height + 8700);
+
+        // Create platform generator and platforms
+        this.platformGenerator = new PlatformGenerator(this, this.level, this.semester);
+        const [platforms, movingPlatforms, powerUps] = this.platformGenerator.generatePlatforms();
 
         // Start player just above the bottom platform
         const centerX = this.cameras.main.width / 2;
@@ -43,7 +54,9 @@ export default class MainScene extends Phaser.Scene {
                 if (platform.isFinish) {
                     this.handleLevelComplete();
                 } else {
-                    player.setVelocityY(-600);
+                    // Use jump boost if active
+                    const jumpVelocity = this.jumpBoostActive ? this.boostedJumpVelocity : this.normalJumpVelocity;
+                    player.setVelocityY(jumpVelocity);
                     
                     // Make platform disappear if it's marked as disappearing
                     if (platform.isDisappearing) {
@@ -62,7 +75,9 @@ export default class MainScene extends Phaser.Scene {
 
         this.physics.add.collider(this.player, movingPlatforms, (player, platform) => {
             if (player.body.touching.down) {
-                player.setVelocityY(-600);
+                // Use jump boost if active
+                const jumpVelocity = this.jumpBoostActive ? this.boostedJumpVelocity : this.normalJumpVelocity;
+                player.setVelocityY(jumpVelocity);
                 
                 // Make platform disappear if it's marked as disappearing
                 if (platform.isDisappearing) {
@@ -82,7 +97,7 @@ export default class MainScene extends Phaser.Scene {
         this.highestY = this.cameras.main.scrollY + (this.cameras.main.height * 2/3);
         
         // Set camera bounds to match world bounds
-        this.cameras.main.setBounds(0, -2000, this.cameras.main.width, this.cameras.main.height + 2500);
+        this.cameras.main.setBounds(0, -8200, this.cameras.main.width, this.cameras.main.height + 8700);
         
 
         // Initial jump
@@ -102,6 +117,19 @@ export default class MainScene extends Phaser.Scene {
         }
 
         // this.debugText = this.add.text(10, 50, 'Debug log:', { font: '16px Arial', fill: '#fff' });
+
+        // Add power-up collision
+        this.physics.add.overlap(this.player, powerUps, this.collectPowerUp, null, this);
+
+        // Add power-up states and timers
+        this.jumpBoostActive = false;
+        this.slowFallActive = false;
+        this.jumpBoostTimer = null;
+        this.slowFallTimer = null;
+        this.normalJumpVelocity = -600;
+        this.boostedJumpVelocity = -1000;
+        this.normalGravity = 300;
+        this.slowFallGravity = 100;
     }
 
     // Handler pre gyroskop
@@ -176,6 +204,11 @@ export default class MainScene extends Phaser.Scene {
 
             this.player.setVelocityX(velocityX);
         }
+
+        // Visual effect for slow fall
+        if (this.slowFallActive && this.player.body.velocity.y > 0) {
+            // Optional: Add floating particle effect here
+        }
     }
 
     shutdown() {
@@ -207,14 +240,22 @@ export default class MainScene extends Phaser.Scene {
         const victoryText = this.add.text(
             this.cameras.main.centerX,
             this.cameras.main.centerY - 50,
-            `${this.selectedDifficulty}. semester dokončený!`,
+            `Level ${this.level}, ${this.semester}. semester dokončený!`,
             { font: '32px Arial', fill: '#fff' }
         );
         victoryText.setOrigin(0.5);
         victoryText.setScrollFactor(0);
 
+        // Determine next level/semester
+        let nextLevel = this.level;
+        let nextSemester = this.semester + 1;
+        
+        if (nextSemester > 5) {
+            nextSemester = 1;
+            nextLevel++;
+        }
+
         // Add continue button
-        const nextLevel = this.selectedDifficulty + 1;
         const buttonText = nextLevel <= 5 ? 'Ďalší semester' : 'Späť do menu';
         
         const continueButton = this.add.text(
@@ -230,7 +271,8 @@ export default class MainScene extends Phaser.Scene {
         continueButton.on('pointerup', () => {
             if (nextLevel <= 5) {
                 this.scene.start('main', { 
-                    difficulty: nextLevel,
+                    level: nextLevel,
+                    semester: nextSemester,
                     controlMethod: this.controlMethod 
                 });
             } else {
@@ -246,8 +288,62 @@ export default class MainScene extends Phaser.Scene {
     handlePlayerDeath() {
         // Reset to the same level
         this.scene.restart({
-            difficulty: this.selectedDifficulty,
+            level: this.level,
+            semester: this.semester,
             controlMethod: this.controlMethod
         });
+    }
+
+    collectPowerUp(player, powerUp) {
+        const powerUpType = powerUp.powerUpType;
+        
+        // Remove the power-up
+        powerUp.destroy();
+
+        if (powerUpType === 'jumpBoost') {
+            // Clear existing timer if there is one
+            if (this.jumpBoostTimer) {
+                this.jumpBoostTimer.remove();
+            }
+            
+            // Activate jump boost
+            this.jumpBoostActive = true;
+            player.setTint(0x00ff00); // Green tint
+            
+            // Set new timer
+            this.jumpBoostTimer = this.time.delayedCall(5000, () => {
+                this.jumpBoostActive = false;
+                if (!this.slowFallActive) {
+                    player.clearTint();
+                }
+            });
+        } else if (powerUpType === 'slowFall') {
+            // Clear existing timer if there is one
+            if (this.slowFallTimer) {
+                this.slowFallTimer.remove();
+            }
+            
+            // Activate slow fall
+            this.slowFallActive = true;
+            player.setTint(0x00ffff); // Cyan tint
+            player.setGravityY(this.slowFallGravity);
+            
+            // Set new timer
+            this.slowFallTimer = this.time.delayedCall(5000, () => {
+                this.slowFallActive = false;
+                player.setGravityY(this.normalGravity);
+                if (!this.jumpBoostActive) {
+                    player.clearTint();
+                }
+            });
+        }
+    }
+
+    // Modify your existing jump logic to use the power-up
+    handleJump() {
+        if (this.player.body.touching.down) {
+            const jumpVelocity = this.jumpBoostActive ? this.boostedJumpVelocity : this.normalJumpVelocity;
+            this.player.setVelocityY(jumpVelocity);
+        }
     }
 }

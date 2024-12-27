@@ -1,0 +1,75 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "name": "Static Platforms",
+      "type": "static",
+      "background": "#1a237e",
+      "config": {
+        "baseGap": 200,
+        "gapIncrease": 20,
+        "minJumpHeight": 100,
+        "maxJumpHeight": 160,
+        "heightIncrease": 15
+      }
+    },
+    {
+      "id": 2,
+      "name": "Moving Platforms",
+      "type": "moving",
+      "background": "#004d40",
+      "config": {
+        "baseSpeed": 2000,
+        "speedIncrease": 200,
+        "baseMoveDistance": 150,
+        "minGap": 120,
+        "maxGap": 180
+      }
+    },
+    {
+      "id": 3,
+      "name": "Alternating Platforms",
+      "type": "alternating",
+      "background": "#311b92",
+      "config": {
+        "baseSpeed": 1800,
+        "speedIncrease": 250,
+        "baseMoveDistance": 200,
+        "distanceIncrease": 30,
+        "minGap": 130,
+        "maxGap": 170
+      }
+    },
+    {
+      "id": 4,
+      "name": "Disappearing Platforms",
+      "type": "disappearing",
+      "background": "#b71c1c",
+      "config": {
+        "movingStartSemester": 3,
+        "baseSpeed": 2000,
+        "speedIncrease": 300,
+        "baseMoveDistance": 150,
+        "distanceIncrease": 30,
+        "minGap": 110,
+        "maxGap": 150
+      }
+    },
+    {
+      "id": 5,
+      "name": "Chaos",
+      "type": "chaos",
+      "background": "#263238",
+      "config": {
+        "movingChance": 0.4,
+        "disappearingChance": 0.7,
+        "baseSpeed": 2000,
+        "speedIncrease": 200,
+        "baseMoveDistance": 150,
+        "distanceIncrease": 25,
+        "minGap": 120,
+        "maxGap": 160
+      }
+    }
+  ]
+}
