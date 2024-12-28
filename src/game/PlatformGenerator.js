@@ -101,9 +101,14 @@ export default class PlatformGenerator {
         
         while (y > endY) {
             const spacing = 200 + (semester * 40); // Gaps increase with semester
-            const minX = Math.max(this.platformWidth, prevX - spacing);
-            const maxX = Math.min(this.gameWidth - this.platformWidth, prevX + spacing);
-            const x = Phaser.Math.Between(minX, maxX);
+            let x;
+            
+            // Ensure new platform's x position is not the same as prevX
+            do {
+                const minX = Math.max(this.platformWidth, prevX - spacing);
+                const maxX = Math.min(this.gameWidth - this.platformWidth, prevX + spacing);
+                x = Phaser.Math.Between(minX, maxX);
+            } while (Math.abs(x - prevX) < 50); // Adjust tolerance as needed
             
             this.createPlatform(x, y);
             prevX = x;
@@ -113,10 +118,18 @@ export default class PlatformGenerator {
 
     generateMovingSection(startY, endY, semester) {
         let y = startY;
+        let prevX = this.gameWidth / 2;
         
         while (y > endY) {
-            const x = Phaser.Math.Between(this.platformWidth + 100, this.gameWidth - this.platformWidth - 100);
+            let x;
+            
+            // Ensure new platform's x position is not the same as prevX
+            do {
+                x = Phaser.Math.Between(this.platformWidth + 100, this.gameWidth - this.platformWidth - 100);
+            } while (Math.abs(x - prevX) < 50); // Adjust tolerance as needed
+            
             const platform = this.createMovingPlatform(x, y);
+            prevX = x; // Update prevX for the next iteration
             
             // Use config values for movement
             const moveDistance = this.config.baseMoveDistance;

@@ -13,6 +13,47 @@ export default class MainScene extends Phaser.Scene {
         this.level = data.level || 1;
         this.semester = data.semester || 1;
         this.controlMethod = data.controlMethod || 'mouse';
+        
+        // Make sure we get the arrays from the previous scene or death restart
+        try {
+            // First try to use data passed from previous scene
+            if (data?.levels && data?.playedLevels) {
+                this.levels = [...data.levels];
+                this.playedLevels = [...data.playedLevels];
+                console.log('Using passed data:', { levels: this.levels, playedLevels: this.playedLevels });
+            } else {
+                // Try to load from localStorage
+                try {
+                    const savedProgress = localStorage.getItem('gameProgress');
+                    if (savedProgress) {
+                        const progress = JSON.parse(savedProgress);
+                        this.levels = progress.levels || [1, 2, 3, 4, 5];
+                        this.playedLevels = progress.playedLevels || [];
+                        console.log('Loaded from localStorage:', { levels: this.levels, playedLevels: this.playedLevels });
+                    } else {
+                        // Initialize with default values if no saved data
+                        this.levels = [1, 2, 3, 4, 5];
+                        this.playedLevels = [];
+                        console.log('Using default values:', { levels: this.levels, playedLevels: this.playedLevels });
+                    }
+                } catch (e) {
+                    console.error('Error loading from localStorage:', e);
+                    // Fallback to default values
+                    this.levels = [1, 2, 3, 4, 5];
+                    this.playedLevels = [];
+                }
+            }
+        } catch (e) {
+            console.error('Error in init:', e);
+            // Final fallback
+            this.levels = [1, 2, 3, 4, 5];
+            this.playedLevels = [];
+        }
+
+        // Add gyroscope handler if on mobile
+        if (this.controlMethod === 'gyroscope') {
+            window.addEventListener('deviceorientation', this.gyroHandler);
+        }
     }
 
     preload() {
@@ -143,13 +184,12 @@ export default class MainScene extends Phaser.Scene {
         this.slowFallGravity = 100;
     }
 
-    // Handler pre gyroskop
+    // Handler for gyroscope
     gyroHandler(event) {
-        // gamma: náklon do strán (od -90 do 90)
-        // Pozitívna gamma: telefón naklonený doprava
-        // Negatívna gamma: telefón naklonený doľava
+        // gamma: side tilt (-90 to 90)
+        // Positive gamma: phone tilted right
+        // Negative gamma: phone tilted left
         const gamma = event.gamma || 0;
-        // Napr. gamma 0 = žiadne naklonenie, gamma 20 = naklonenie doprava
         const speedFactor = 10;
         let newVelocityX = gamma * speedFactor;
 
@@ -158,8 +198,6 @@ export default class MainScene extends Phaser.Scene {
         } else if (newVelocityX < -this.maxHorizontalVelocity) {
             newVelocityX = -this.maxHorizontalVelocity;
         }
-
-        // this.debugText.setText(`gamma: ${gamma.toFixed(2)}\nvelocityX: ${newVelocityX.toFixed(2)}`);
 
         if (this.player && this.player.body) {
             this.player.setVelocityX(newVelocityX);
@@ -182,7 +220,7 @@ export default class MainScene extends Phaser.Scene {
         }
 
         if (this.controlMethod === 'mouse') {
-            // Ovládanie myšou
+            // Mouse control
             const pointer = this.input.activePointer;
             const dx = pointer.x - this.player.x;
             const speedFactor = 2;
@@ -196,25 +234,18 @@ export default class MainScene extends Phaser.Scene {
             this.player.setVelocityX(newVelocityX);
 
         } else if (this.controlMethod === 'keyboard') {
-            // Ovládanie klávesnicou
+            // Keyboard control
             let velocityX = 0;
 
-            // Šípky
-            if (this.cursors.left.isDown) {
+            if (this.cursors.left.isDown || this.keys.A.isDown) {
                 velocityX = -this.maxHorizontalVelocity;
-            } else if (this.cursors.right.isDown) {
-                velocityX = this.maxHorizontalVelocity;
-            }
-
-            // A/D
-            if (this.keys.A.isDown) {
-                velocityX = -this.maxHorizontalVelocity;
-            } else if (this.keys.D.isDown) {
+            } else if (this.cursors.right.isDown || this.keys.D.isDown) {
                 velocityX = this.maxHorizontalVelocity;
             }
 
             this.player.setVelocityX(velocityX);
         }
+        // Note: gyroscope control is handled by the event listener
 
         // Visual effect for slow fall
         if (this.slowFallActive && this.player.body.velocity.y > 0) {
@@ -223,85 +254,53 @@ export default class MainScene extends Phaser.Scene {
     }
 
     shutdown() {
-        window.removeEventListener('deviceorientation', this.gyroHandler);
+        if (this.controlMethod === 'gyroscope') {
+            window.removeEventListener('deviceorientation', this.gyroHandler);
+        }
     }
 
     destroy() {
+        if (this.controlMethod === 'gyroscope') {
+            window.removeEventListener('deviceorientation', this.gyroHandler);
+        }
         super.destroy();
-        window.removeEventListener('deviceorientation', this.gyroHandler);
     }
 
     handleLevelComplete() {
-        // Stop player movement
-        this.player.setVelocity(0, 0);
-        this.player.body.allowGravity = false;
-
-        // Create victory overlay
-        const overlay = this.add.rectangle(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            this.cameras.main.width,
-            this.cameras.main.height,
-            0x000000,
-            0.7
-        );
-        overlay.setScrollFactor(0);
-
-        // Add victory text
-        const victoryText = this.add.text(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY - 50,
-            `Level ${this.level}, ${this.semester}. semester dokončený!`,
-            { font: '32px Arial', fill: '#fff' }
-        );
-        victoryText.setOrigin(0.5);
-        victoryText.setScrollFactor(0);
-
-        // Determine next level/semester
-        let nextLevel = this.level;
-        let nextSemester = this.semester + 1;
-        
-        if (nextSemester > 5) {
-            nextSemester = 1;
-            nextLevel++;
-        }
-
-        // Add continue button
-        const buttonText = nextLevel <= 5 ? 'Ďalší semester' : 'Späť do menu';
-        
-        const continueButton = this.add.text(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 50,
-            buttonText,
-            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
-        );
-        continueButton.setOrigin(0.5);
-        continueButton.setScrollFactor(0);
-        continueButton.setInteractive({ useHandCursor: true });
-
-        continueButton.on('pointerup', () => {
-            if (nextLevel <= 5) {
-                this.scene.start('main', { 
-                    level: nextLevel,
-                    semester: nextSemester,
-                    controlMethod: this.controlMethod 
-                });
-            } else {
-                this.scene.start('menu');
+        try {
+            // Get the current level
+            const currentLevel = this.level;
+            
+            // Update arrays
+            const levelIndex = this.levels.indexOf(currentLevel);
+            if (levelIndex > -1) {
+                this.levels.splice(levelIndex, 1);
+                this.playedLevels.push(currentLevel);
             }
-        });
 
-        // Add hover effect
-        continueButton.on('pointerover', () => continueButton.setStyle({ fill: '#ffff00' }));
-        continueButton.on('pointerout', () => continueButton.setStyle({ fill: '#ffffff' }));
+            // Save progress with error handling
+            this.saveProgress();
+
+            // Start menu scene with updated arrays
+            this.scene.start('menu', {
+                levels: this.levels,
+                playedLevels: this.playedLevels
+            });
+        } catch (e) {
+            console.error('Error in handleLevelComplete:', e);
+            // Fallback to menu without saving
+            this.scene.start('menu');
+        }
     }
 
     handlePlayerDeath() {
-        // Reset to the same level
+        // Restart the same level but maintain the arrays
         this.scene.restart({
             level: this.level,
             semester: this.semester,
-            controlMethod: this.controlMethod
+            controlMethod: this.controlMethod,
+            levels: this.levels,          // Pass the current levels array
+            playedLevels: this.playedLevels  // Pass the played levels array
         });
     }
 
@@ -391,7 +390,37 @@ export default class MainScene extends Phaser.Scene {
         this.quitButton.setScrollFactor(0);
         this.quitButton.setInteractive({ useHandCursor: true });
         this.quitButton.on('pointerup', () => {
-            this.scene.start('menu');
+            // Get the current level
+            const currentLevel = this.level;
+            
+            // Create copies of the arrays to avoid reference issues
+            const levels = [...this.levels];
+            const playedLevels = [...this.playedLevels];
+
+            // Remove the current level from available levels if it exists
+            const levelIndex = levels.indexOf(currentLevel);
+            if (levelIndex > -1) {
+                levels.splice(levelIndex, 1);
+                if (!playedLevels.includes(currentLevel)) {
+                    playedLevels.push(currentLevel);
+                }
+            }
+
+            console.log('MainScene Quit - Available Levels:', levels);
+            console.log('MainScene Quit - Played Levels:', playedLevels);
+
+            // Save progress to localStorage
+            localStorage.setItem('gameProgress', JSON.stringify({
+                levels: levels,
+                playedLevels: playedLevels,
+                lastUpdated: new Date().toISOString()
+            }));
+
+            // Go back to menu with updated arrays
+            this.scene.start('menu', {
+                levels: levels,
+                playedLevels: playedLevels
+            });
         });
         // Vytvoríme tlačidlo "Pokračovať"
         this.continueButton = this.add.text(
@@ -419,6 +448,47 @@ export default class MainScene extends Phaser.Scene {
         this.physics.world.resume();
         // Opäť zobrazíme "pause" tlačidlo
         this.pauseButton.setVisible(true);
+    }
+
+    handleGyroscope(event) {
+        if (!this.player || this.isPaused) return;
+
+        // Beta is front-to-back tilt in degrees, where front is positive
+        const tiltFrontBack = event.beta;
+        // Gamma is left-to-right tilt in degrees, where right is positive
+        const tiltLeftRight = event.gamma;
+
+        // Adjust player velocity based on device tilt
+        if (tiltLeftRight !== null && tiltFrontBack !== null) {
+            // Left-right movement
+            if (tiltLeftRight > 10) { // Tilted right
+                this.player.setVelocityX(300);
+            } else if (tiltLeftRight < -10) { // Tilted left
+                this.player.setVelocityX(-300);
+            } else { // Nearly flat
+                this.player.setVelocityX(0);
+            }
+
+            // Jump when device is tilted forward significantly
+            if (tiltFrontBack < -30 && this.player.body.touching.down) {
+                this.player.setVelocityY(-400); // Jump
+            }
+        }
+    }
+
+    // Update save progress method to be more robust
+    saveProgress() {
+        try {
+            const progress = {
+                levels: this.levels,
+                playedLevels: this.playedLevels,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem('gameProgress', JSON.stringify(progress));
+            console.log('Progress saved successfully:', progress);
+        } catch (e) {
+            console.error('Error saving progress:', e);
+        }
     }
 
 }

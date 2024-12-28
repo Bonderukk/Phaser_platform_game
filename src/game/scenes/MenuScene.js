@@ -1,10 +1,39 @@
 import Phaser from 'phaser';
-import data from '../difficulties.json';
-import {isMobileDevice} from "../../utils/isMobileDevice.js";
 
 export default class MenuScene extends Phaser.Scene {
     constructor() {
         super('menu');
+    }
+
+    init(data) {
+        // Try to load saved progress first
+        const savedProgress = this.loadProgress();
+        
+        if (data?.levels !== undefined && data?.playedLevels !== undefined) {
+            // Use data passed from other scenes
+            this.levels = data.levels;
+            this.playedLevels = data.playedLevels;
+        } else if (savedProgress) {
+            // Use saved progress if no data was passed
+            this.levels = savedProgress.levels;
+            this.playedLevels = savedProgress.playedLevels;
+        } else {
+            // Initialize new arrays if nothing exists
+            this.levels = [1, 2, 3, 4, 5];
+            this.playedLevels = [];
+        }
+
+        // If all levels have been played, reset
+        if (this.levels.length === 0) {
+            this.levels = [1, 2, 3, 4, 5];
+            this.playedLevels = [];
+        }
+
+        // Save current state
+        this.saveProgress();
+
+        console.log('MenuScene - Available Levels:', this.levels);
+        console.log('MenuScene - Played Levels:', this.playedLevels);
     }
 
     preload() {
@@ -12,17 +41,70 @@ export default class MenuScene extends Phaser.Scene {
 
     create() {
         // Set background color to blue
-        this.cameras.main.setBackgroundColor('#1a237e');  // Same deep blue as Level 1
+        this.cameras.main.setBackgroundColor('#1a237e');  // Deep blue
 
-        const difficulties = data.difficulties;
+        const startText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Start Game', {
+            font: '32px Arial',
+            fill: '#ffffff'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        const centerX = this.cameras.main.width / 2;
-        const centerY = this.cameras.main.height / 2;
+        startText.on('pointerup', async () => {
+            // Check if all levels have been played
+            if (this.levels.length === 0) {
+                this.levels = [1, 2, 3, 4, 5];
+                this.playedLevels = [];
+            }
 
-        const startY = centerY - (difficulties.length * 30)/2;
+            const randomIndex = Math.floor(Math.random() * this.levels.length);
+            const randomLevel = this.levels[randomIndex];
 
-        this.isMobile = isMobileDevice();
+            this.saveProgress();
 
+            if (this.isMobile) {
+                // We're on mobile, check for gyroscope permissions
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function'
+                ) {
+                    try {
+                        // Request permission for iOS 13+
+                        const permissionState = await DeviceOrientationEvent.requestPermission();
+                        if (permissionState === 'granted') {
+                            this.scene.start('main', {
+                                level: randomLevel,
+                                controlMethod: 'gyroscope',
+                                levels: this.levels,
+                                playedLevels: this.playedLevels
+                            });
+                        } else {
+                            this.showDeniedMessage();
+                        }
+                    } catch (error) {
+                        console.error('Gyroscope permission error:', error);
+                        this.showDeniedMessage();
+                    }
+                } else {
+                    // Older iOS or Android, no need for permission
+                    this.scene.start('main', {
+                        level: randomLevel,
+                        controlMethod: 'gyroscope',
+                        levels: this.levels,
+                        playedLevels: this.playedLevels
+                    });
+                }
+            } else {
+                // On desktop, go to controls selection
+                this.scene.start('controls', {
+                    difficulty: randomLevel,
+                    levels: this.levels,
+                    playedLevels: this.playedLevels
+                });
+            }
+        });
+
+        // Add mobile detection
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // If on mobile, you might want to skip the controls scene and go straight to gyroscope
         if (this.isMobile) {
             const questionMark = this.add.text(
                 this.cameras.main.width - 100,
@@ -34,70 +116,13 @@ export default class MenuScene extends Phaser.Scene {
                 }
             );
 
-            questionMark.setOrigin(1, 0); // zarovnať vpravo hore
+            questionMark.setOrigin(1, 0); // Align to the top right
             questionMark.setInteractive({ useHandCursor: true });
 
             questionMark.on('pointerup', () => {
                 this.showInstructionsOverlay();
             });
         }
-
-        difficulties.forEach((diff, index) => {
-            const yPos = startY + index * 30;
-            const text = this.add.text(centerX, yPos, diff.label, { font: '20px Arial', fill: '#ffffff' });
-            text.setOrigin(0.5);
-            text.setInteractive({ useHandCursor: true });
-
-            text.on('pointerup', async () => {
-                if (this.isMobile) {
-                    // Sme na mobile, chceme ovládanie gyroskopom
-
-                    // Najprv skontrolujeme, či sme na novšom iOS (>= 13),
-                    // ktoré vyžaduje requestPermission.
-                    if (
-                        typeof DeviceOrientationEvent !== 'undefined' &&
-                        typeof DeviceOrientationEvent.requestPermission === 'function'
-                    ) {
-                        try {
-                            // Požiadame o prístup k motion & orientation
-                            const permissionState = await DeviceOrientationEvent.requestPermission();
-                            if (permissionState === 'granted') {
-                                // Máme povolenie, môžeme ísť do MainScene
-                                this.scene.start('main', {
-                                    level: diff.value,
-                                    difficulty: diff.value,
-                                    controlMethod: 'gyroscope'
-                                });
-                            } else {
-                                // Používateľ odmietol prístup
-                                this.showDeniedMessage();
-                            }
-                        } catch (error) {
-                            console.error('Gyroscope requestPermission error:', error);
-                            // Fallback / show error
-                        }
-                    } else {
-                        // Staršie iOS alebo Android, kde netreba requestPermission
-                        this.scene.start('main', {
-                            level: diff.value,
-                            difficulty: diff.value,
-                            controlMethod: 'gyroscope'
-                        });
-                    }
-
-                } else {
-                    // Na desktope pokračujeme do ControlsScene (myš / klávesnica)
-                    this.scene.start('controls', { difficulty: diff.value });
-                }
-            });
-
-            text.on('pointerover', () => {
-                text.setStyle({ fill: '#ff0' });
-            });
-            text.on('pointerout', () => {
-                text.setStyle({ fill: '#fff' });
-            });
-        });
     }
 
     // Zobrazí upozornenie, že používateľ odmietol prístup k gyroskopu
@@ -160,6 +185,34 @@ Ovládanie:
             overlay.destroy();
             instructions.destroy();
             closeText.destroy();
+        });
+    }
+
+    saveProgress() {
+        const progress = {
+            levels: this.levels,
+            playedLevels: this.playedLevels,
+            lastUpdated: new Date().toISOString()
+        };
+        localStorage.setItem('gameProgress', JSON.stringify(progress));
+    }
+
+    loadProgress() {
+        const savedProgress = localStorage.getItem('gameProgress');
+        return savedProgress ? JSON.parse(savedProgress) : null;
+    }
+
+    showDeniedMessage() {
+        const msg = this.add.text(
+            this.cameras.main.width / 2,
+            this.cameras.main.height / 2 + 100,
+            'Povolenie zamietnuté :(',
+            { font: '18px Arial', fill: '#ff0000' }
+        ).setOrigin(0.5);
+
+        // Remove message after 2 seconds
+        this.time.delayedCall(2000, () => {
+            msg.destroy();
         });
     }
 }

@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/~xbenacka/zaverecne-zadanie/",
+  base: "/zaverecne-zadanie~xbenacka//",
   plugins: [react(), VitePWA({
     registerType: 'autoUpdate',
     injectRegister: false,

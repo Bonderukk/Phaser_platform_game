@@ -7,6 +7,8 @@ export default class ControlsScene extends Phaser.Scene {
 
     init(data) {
         this.selectedDifficulty = data.difficulty;
+        this.levels = data.levels;
+        this.playedLevels = data.playedLevels;
     }
 
     create() {
@@ -24,11 +26,21 @@ export default class ControlsScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true });
 
         mouseText.on('pointerup', () => {
-            this.scene.start('main', { level: this.selectedDifficulty, controlMethod: 'mouse' });
+            this.scene.start('main', { 
+                level: this.selectedDifficulty, 
+                controlMethod: 'mouse',
+                levels: this.levels,
+                playedLevels: this.playedLevels
+            });
         });
 
         keyboardText.on('pointerup', () => {
-            this.scene.start('main', { level: this.selectedDifficulty, controlMethod: 'keyboard' });
+            this.scene.start('main', { 
+                level: this.selectedDifficulty, 
+                controlMethod: 'keyboard',
+                levels: this.levels,
+                playedLevels: this.playedLevels
+            });
         });
 
         const hoverIn = (txt) => txt.setStyle({ fill: '#ff0' });
