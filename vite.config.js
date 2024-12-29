@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "https://webte1.fei.stuba.sk/~xbednarikm3/final/",
+  base: "/~xbenacka/zaverecne-zadanie/",
   plugins: [react(), VitePWA({
     registerType: 'autoUpdate',
     injectRegister: 'auto',
@@ -16,8 +16,8 @@ export default defineConfig({
       theme_color: '#ffffff',
       background_color: '#ffffff',
       display: 'standalone',
-      scope: '/',
-      start_url: '/',
+      scope: '/~xbenacka/zaverecne-zadanie/',
+      start_url: '/~xbenacka/zaverecne-zadanie/',
       orientation: 'portrait',
       icons: [
         {
