@@ -4,7 +4,7 @@
       "id": 1,
       "name": "Static Platforms",
       "type": "static",
-      "background": "#1a237e",
+      "background": "#3C3744",
       "config": {
         "baseGap": 200,
         "gapIncrease": 20,
@@ -17,7 +17,7 @@
       "id": 2,
       "name": "Moving Platforms",
       "type": "moving",
-      "background": "#004d40",
+      "background": "#090C9B",
       "config": {
         "baseSpeed": 2000,
         "speedIncrease": 200,
@@ -30,7 +30,7 @@
       "id": 3,
       "name": "Alternating Platforms",
       "type": "alternating",
-      "background": "#311b92",
+      "background": "#3066BE",
       "config": {
         "baseSpeed": 1800,
         "speedIncrease": 250,
@@ -44,7 +44,7 @@
       "id": 4,
       "name": "Disappearing Platforms",
       "type": "disappearing",
-      "background": "#b71c1c",
+      "background": "#B4C5E4",
       "config": {
         "movingStartSemester": 3,
         "baseSpeed": 2000,
@@ -59,7 +59,7 @@
       "id": 5,
       "name": "Chaos",
       "type": "chaos",
-      "background": "#263238",
+      "background": "#FBFFF1",
       "config": {
         "movingChance": 0.4,
         "disappearingChance": 0.7,

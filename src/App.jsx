@@ -63,7 +63,8 @@ function App() {
                 <h2>Popis hry</h2>
                 <p>
                     FEI Jump je jednoduchá skákacia hra. Cieľom hry je dostať sa na finálnu
-                    platformu bez toho, aby ste spadli.
+                    platformu bez toho, aby ste spadli. Po ceste budete zbierať boostery, ktoré vám pomôžu
+                    zdolať jednotlivé semestre našej školy až kým sa nedostanete na vrchol.
                 </p>
                 <p>
                     <strong>Ovládanie:</strong>

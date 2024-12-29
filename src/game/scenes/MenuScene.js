@@ -40,12 +40,11 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        // Set background color to blue
-        this.cameras.main.setBackgroundColor('#1a237e');  // Deep blue
+        this.cameras.main.setBackgroundColor('#3C3744');
 
-        const startText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Start Game', {
-            font: '32px Arial',
-            fill: '#ffffff'
+        const startText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'ZAČAŤ HRU', {
+            font: '50px Arial',
+            fill: '#ff0'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         startText.on('pointerup', async () => {
@@ -107,7 +106,7 @@ export default class MenuScene extends Phaser.Scene {
         // If on mobile, you might want to skip the controls scene and go straight to gyroscope
         if (this.isMobile) {
             const questionMark = this.add.text(
-                this.cameras.main.width - 100,
+                this.cameras.main.width - 80,
                 50,
                 '?',
                 {
@@ -151,7 +150,10 @@ export default class MenuScene extends Phaser.Scene {
 
         const instructionsText =
             `Popis hry
-FEI Jump je jednoduchá skákacia hra. Cieľom hry je dostať sa na finálnu platformu bez toho, aby ste spadli.
+            
+FEI Jump je jednoduchá skákacia hra. Cieľom hry je dostať sa na
+finálnu platformu bez toho, aby ste spadli. Po ceste budete zbierať
+boostery, ktoré vám pomôžu zdolať jednotlivé semestre našej školy až kým sa nedostanete na vrchol.
 
 Ovládanie:
   • Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.
