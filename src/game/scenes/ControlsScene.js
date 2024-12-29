@@ -9,6 +9,7 @@ export default class ControlsScene extends Phaser.Scene {
         this.selectedDifficulty = data.difficulty;
         this.levels = data.levels;
         this.playedLevels = data.playedLevels;
+        this.gameMode = data.gameMode || 'hard';
     }
 
     create() {
@@ -29,6 +30,7 @@ export default class ControlsScene extends Phaser.Scene {
             this.scene.start('main', { 
                 level: this.selectedDifficulty, 
                 controlMethod: 'mouse',
+                gameMode: this.gameMode,
                 levels: this.levels,
                 playedLevels: this.playedLevels
             });
@@ -38,6 +40,7 @@ export default class ControlsScene extends Phaser.Scene {
             this.scene.start('main', { 
                 level: this.selectedDifficulty, 
                 controlMethod: 'keyboard',
+                gameMode: this.gameMode,
                 levels: this.levels,
                 playedLevels: this.playedLevels
             });

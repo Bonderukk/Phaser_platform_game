@@ -13,6 +13,7 @@ export default class MainScene extends Phaser.Scene {
         this.level = data.level || 1;
         this.semester = data.semester || 1;
         this.controlMethod = data.controlMethod || 'mouse';
+        this.gameMode = data.gameMode || 'hard';
         
         // Make sure we get the arrays from the previous scene or death restart
         try {
@@ -80,6 +81,22 @@ export default class MainScene extends Phaser.Scene {
         // Create platform generator and platforms
         this.platformGenerator = new PlatformGenerator(this, this.level, this.semester);
         const [platforms, movingPlatforms, powerUps] = this.platformGenerator.generatePlatforms();
+
+        if (this.gameMode === 'easy') {
+            platforms.children.iterate(platform => {
+                platform.body.checkCollision.up = true;
+                platform.body.checkCollision.down = false;
+                platform.body.checkCollision.left = false;
+                platform.body.checkCollision.right = false;
+            });
+
+            movingPlatforms.children.iterate(platform => {
+                platform.body.checkCollision.up = true;
+                platform.body.checkCollision.down = false;
+                platform.body.checkCollision.left = false;
+                platform.body.checkCollision.right = false;
+            });
+        }
 
         // Start player just above the bottom platform
         const centerX = this.cameras.main.width / 2;
@@ -299,6 +316,7 @@ export default class MainScene extends Phaser.Scene {
             level: this.level,
             semester: this.semester,
             controlMethod: this.controlMethod,
+            gameMode: this.gameMode,
             levels: this.levels,          // Pass the current levels array
             playedLevels: this.playedLevels  // Pass the played levels array
         });

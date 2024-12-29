@@ -42,58 +42,78 @@ export default class MenuScene extends Phaser.Scene {
     create() {
         this.cameras.main.setBackgroundColor('#3C3744');
 
-        const startText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'ZAČAŤ HRU', {
-            font: '50px Arial',
-            fill: '#ff0'
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        const easyModeText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 50,
+            'Hrať ľahkú obtiažnosť',
+            {
+                font: '40px Arial',
+                fill: '#ff0'
+            }
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        startText.on('pointerup', async () => {
-            // Check if all levels have been played
+        const hardModeText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 50,
+            'Hrať ťažkú obtiažnosť',
+            {
+                font: '40px Arial',
+                fill: '#ff0'
+            }
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        easyModeText.on('pointerup', async () => {
+            // Skontrolujeme, či máme ešte dostupné levely
             if (this.levels.length === 0) {
                 this.levels = [1, 2, 3, 4, 5];
                 this.playedLevels = [];
             }
-
             const randomIndex = Math.floor(Math.random() * this.levels.length);
             const randomLevel = this.levels[randomIndex];
 
             this.saveProgress();
 
             if (this.isMobile) {
-                // We're on mobile, check for gyroscope permissions
-                if (typeof DeviceOrientationEvent !== 'undefined' &&
-                    typeof DeviceOrientationEvent.requestPermission === 'function'
-                ) {
-                    try {
-                        // Request permission for iOS 13+
-                        const permissionState = await DeviceOrientationEvent.requestPermission();
-                        if (permissionState === 'granted') {
-                            this.scene.start('main', {
-                                level: randomLevel,
-                                controlMethod: 'gyroscope',
-                                levels: this.levels,
-                                playedLevels: this.playedLevels
-                            });
-                        } else {
-                            this.showDeniedMessage();
-                        }
-                    } catch (error) {
-                        console.error('Gyroscope permission error:', error);
-                        this.showDeniedMessage();
-                    }
-                } else {
-                    // Older iOS or Android, no need for permission
-                    this.scene.start('main', {
-                        level: randomLevel,
-                        controlMethod: 'gyroscope',
-                        levels: this.levels,
-                        playedLevels: this.playedLevels
-                    });
-                }
+                this.scene.start('main', {
+                    level: randomLevel,
+                    controlMethod: 'gyroscope',
+                    gameMode: 'easy',
+                    levels: this.levels,
+                    playedLevels: this.playedLevels
+                });
             } else {
-                // On desktop, go to controls selection
                 this.scene.start('controls', {
                     difficulty: randomLevel,
+                    gameMode: 'easy',
+                    levels: this.levels,
+                    playedLevels: this.playedLevels
+                });
+            }
+        });
+
+        hardModeText.on('pointerup', async () => {
+            // Skontrolujeme, či máme ešte dostupné levely
+            if (this.levels.length === 0) {
+                this.levels = [1, 2, 3, 4, 5];
+                this.playedLevels = [];
+            }
+            const randomIndex = Math.floor(Math.random() * this.levels.length);
+            const randomLevel = this.levels[randomIndex];
+
+            this.saveProgress();
+
+            if (this.isMobile) {
+                this.scene.start('main', {
+                    level: randomLevel,
+                    controlMethod: 'gyroscope',
+                    gameMode: 'hard',
+                    levels: this.levels,
+                    playedLevels: this.playedLevels
+                });
+            } else {
+                this.scene.start('controls', {
+                    difficulty: randomLevel,
+                    gameMode: 'hard',
                     levels: this.levels,
                     playedLevels: this.playedLevels
                 });
