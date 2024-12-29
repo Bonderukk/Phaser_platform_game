@@ -59,7 +59,7 @@
       "id": 5,
       "name": "Chaos",
       "type": "chaos",
-      "background": "#FBFFF1",
+      "background": "#BFCC94",
       "config": {
         "movingChance": 0.4,
         "disappearingChance": 0.7,

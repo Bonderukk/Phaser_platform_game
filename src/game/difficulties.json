@@ -1,9 +1,0 @@
-{
-  "difficulties": [
-    { "label": "1. level", "value": 1 },
-    { "label": "2. level", "value": 2 },
-    { "label": "3. level", "value": 3 },
-    { "label": "4. level", "value": 4 },
-    { "label": "5. level", "value": 5 }
-  ]
-}

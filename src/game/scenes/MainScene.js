@@ -71,7 +71,7 @@ export default class MainScene extends Phaser.Scene {
         // Set background color
         this.cameras.main.setBackgroundColor(levelData.background);
 
-        this.add.text(10, 10, `Level ${this.level}`, { font: '20px Arial', fill: '#fff' });
+        this.add.text(10, 10, `${levelData.name}`, { font: '20px Arial', fill: '#fff' });
 
         // Set world bounds for all five semesters
         this.physics.world.setBounds(0, -8200, this.cameras.main.width, this.cameras.main.height + 8700);
