@@ -8,12 +8,13 @@
     border-radius: 4px;
     z-index: 1;
     text-align: left;
-    box-shadow: 3px 4px 5px 0 #8885;
-    background-color: white;
+    box-shadow: 0 0 5px #8885;
+    background-color: black;
 }
-.PWABadge-toast-message {
+.PWABadge-message {
     margin-bottom: 8px;
 }
+
 .PWABadge-toast-button {
     border: 1px solid #8885;
     outline: none;
@@ -21,3 +22,9 @@
     border-radius: 2px;
     padding: 3px 10px;
 }
+
+.PWABadge-buttons {
+    display: flex;
+    justify-content: center;
+}
+

@@ -15,7 +15,7 @@ const PageTitle = styled.h1`
 `;
 
 const GameContainer = styled.div`
-    width: 100vw;
+    width: 100%;
     height: ${({ $hasTitle }) =>
             $hasTitle ? `calc(100vh - ${TitleHeight}px)` : '100vh'};
     @media print {
