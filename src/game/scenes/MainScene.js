@@ -60,7 +60,7 @@ export default class MainScene extends Phaser.Scene {
         this.load.image('player', 'game/assets/player.png');
         this.load.image('platform', 'game/assets/platform.png');
         this.load.image('powerUp', 'game/assets/boost_smaller.png');
-        this.load.image('slowFallPowerUp', 'game/assets/cigy_small.png'); // New power-up image
+        this.load.image('slowFallPowerUp', 'game/assets/cigy_small.png');
         this.load.image('pauseButton', 'game/assets/pause-button.png');
     }
 
@@ -435,6 +435,21 @@ export default class MainScene extends Phaser.Scene {
         this.continueButton.on('pointerup', () => {
             this.resumeGame();
         });
+
+        // Tlačidlo "Nápoveda"
+        this.helpButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 160,
+            'Nápoveda',
+            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
+        );
+        this.helpButton.setOrigin(0.5);
+        this.helpButton.setScrollFactor(0);
+        this.helpButton.setInteractive({ useHandCursor: true });
+        this.helpButton.on('pointerup', () => {
+            this.showHelp();
+        });
+
         this.pauseButton.setVisible(false);
     }
     // Metóda na pokračovanie v hre
@@ -444,6 +459,7 @@ export default class MainScene extends Phaser.Scene {
         this.pauseText.destroy();
         this.quitButton.destroy();
         this.continueButton.destroy();
+        this.helpButton.destroy();
         // Obnovíme fyziku
         this.physics.world.resume();
         // Opäť zobrazíme "pause" tlačidlo
@@ -491,4 +507,57 @@ export default class MainScene extends Phaser.Scene {
         }
     }
 
+    showHelp() {
+        // Overlay
+        this.helpOverlay = this.add.rectangle(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000,
+            0.8
+        );
+        this.helpOverlay.setOrigin(0.5);
+        this.helpOverlay.setScrollFactor(0);
+
+        // Inštrukcie
+        const helpTextContent =
+            'Ovládanie:\n' +
+            '- Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.\n' +
+            '- Klávesnica (desktop): Použite šípky vľavo/vpravo alebo klávesy A/D na pohyb.\n' +
+            '- Gyroskop (mobil): Nakláňajte telefón, aby sa panáčik pohyboval doľava či doprava.\n\n' +
+            'Boostery:\n' +
+            '- Red Bull: Dočasne zvýši výšku skoku.\n' +
+            '- Cigarety: Dočasne znížia rýchlosť pádu.';
+
+        this.helpText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 100,
+            helpTextContent,
+            {
+                font: '18px Arial',
+                fill: '#fff',
+                align: 'center',
+                wordWrap: { width: this.cameras.main.width - 100 }
+            }
+        );
+        this.helpText.setOrigin(0.5, 0.5);
+        this.helpText.setScrollFactor(0);
+
+        // Tlačidlo "Zavrieť"
+        this.closeHelpButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 140,
+            'Zavrieť',
+            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
+        );
+        this.closeHelpButton.setOrigin(0.5);
+        this.closeHelpButton.setScrollFactor(0);
+        this.closeHelpButton.setInteractive({ useHandCursor: true });
+        this.closeHelpButton.on('pointerup', () => {
+            this.helpOverlay.destroy();
+            this.helpText.destroy();
+            this.closeHelpButton.destroy();
+        });
+    }
 }
