@@ -5,13 +5,14 @@ import './App.css'
 import { isMobileDevice } from "./utils/isMobileDevice.js";
 import styled from 'styled-components';
 
-const TitleHeight = 60;
+const TitleHeight = 90;
 
 const PageTitle = styled.h1`
     text-align: center;
-    margin: 0;
-    height: ${TitleHeight}px;
-    line-height: ${TitleHeight}px;
+    margin-top: 30px;
+    margin-bottom: 0;
+    height: ${TitleHeight-30}px;
+    line-height: ${TitleHeight-30}px;
 `;
 
 const GameContainer = styled.div`
