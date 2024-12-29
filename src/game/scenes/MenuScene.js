@@ -41,6 +41,7 @@ export default class MenuScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#3C3744');
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         const easyModeText = this.add.text(
             this.cameras.main.centerX,
@@ -74,13 +75,35 @@ export default class MenuScene extends Phaser.Scene {
             this.saveProgress();
 
             if (this.isMobile) {
-                this.scene.start('main', {
-                    level: randomLevel,
-                    controlMethod: 'gyroscope',
-                    gameMode: 'easy',
-                    levels: this.levels,
-                    playedLevels: this.playedLevels
-                });
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function'
+                ) {
+                    try {
+                        const permissionState = await DeviceOrientationEvent.requestPermission();
+                        if (permissionState === 'granted') {
+                            this.scene.start('main', {
+                                level: randomLevel,
+                                controlMethod: 'gyroscope',
+                                gameMode: 'easy',
+                                levels: this.levels,
+                                playedLevels: this.playedLevels
+                            });
+                        } else {
+                            this.showDeniedMessage();
+                        }
+                    } catch (error) {
+                        console.error('Gyroscope permission error:', error);
+                        this.showDeniedMessage();
+                    }
+                } else {
+                    this.scene.start('main', {
+                        level: randomLevel,
+                        controlMethod: 'gyroscope',
+                        gameMode: 'easy',
+                        levels: this.levels,
+                        playedLevels: this.playedLevels
+                    });
+                }
             } else {
                 this.scene.start('controls', {
                     difficulty: randomLevel,
@@ -103,13 +126,35 @@ export default class MenuScene extends Phaser.Scene {
             this.saveProgress();
 
             if (this.isMobile) {
-                this.scene.start('main', {
-                    level: randomLevel,
-                    controlMethod: 'gyroscope',
-                    gameMode: 'hard',
-                    levels: this.levels,
-                    playedLevels: this.playedLevels
-                });
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function'
+                ) {
+                    try {
+                        const permissionState = await DeviceOrientationEvent.requestPermission();
+                        if (permissionState === 'granted') {
+                            this.scene.start('main', {
+                                level: randomLevel,
+                                controlMethod: 'gyroscope',
+                                gameMode: 'hard',
+                                levels: this.levels,
+                                playedLevels: this.playedLevels
+                            });
+                        } else {
+                            this.showDeniedMessage();
+                        }
+                    } catch (error) {
+                        console.error('Gyroscope permission error:', error);
+                        this.showDeniedMessage();
+                    }
+                } else {
+                    this.scene.start('main', {
+                        level: randomLevel,
+                        controlMethod: 'gyroscope',
+                        gameMode: 'hard',
+                        levels: this.levels,
+                        playedLevels: this.playedLevels
+                    });
+                }
             } else {
                 this.scene.start('controls', {
                     difficulty: randomLevel,
@@ -119,9 +164,6 @@ export default class MenuScene extends Phaser.Scene {
                 });
             }
         });
-
-        // Add mobile detection
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         // If on mobile, you might want to skip the controls scene and go straight to gyroscope
         if (this.isMobile) {
@@ -143,19 +185,6 @@ export default class MenuScene extends Phaser.Scene {
             });
         }
     }
-
-    // Zobrazí upozornenie, že používateľ odmietol prístup k gyroskopu
-    /*showDeniedMessage() {
-    showDeniedMessage() {
-        const msg = this.add.text(
-            this.cameras.main.width / 2,
-            this.cameras.main.height / 2 + 100,
-            'Povolenie zamietnuté :(',
-            { font: '18px Arial', fill: '#ff0000' }
-        ).setOrigin(0.5);
-
-    }*/
-    
 
     showInstructionsOverlay() {
         const overlay = this.add.rectangle(
