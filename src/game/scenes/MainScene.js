@@ -207,7 +207,7 @@ export default class MainScene extends Phaser.Scene {
         // Positive gamma: phone tilted right
         // Negative gamma: phone tilted left
         const gamma = event.gamma || 0;
-        const speedFactor = 10;
+        const speedFactor = 20;
         let newVelocityX = gamma * speedFactor;
 
         if (newVelocityX > this.maxHorizontalVelocity) {
