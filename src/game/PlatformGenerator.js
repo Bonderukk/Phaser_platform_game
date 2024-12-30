@@ -86,8 +86,12 @@ export default class PlatformGenerator {
             }
         }
         
-        // Add final finish line at the top
-        this.finishLine = this.createFinishPlatform(this.gameWidth / 2, -7800);
+        // Calculate the Y position for the finish platform
+        const lastSemesterEndY = this.gameHeight - 250 - (5 * 1600);
+        const finishY = lastSemesterEndY - 130; // Garantovaná dosiahnuteľnosť pre všetky levely
+
+        // Add final finish platform at a guaranteed reachable height
+        this.finishLine = this.createFinishPlatform(this.gameWidth / 2, finishY);
         
         // Add power-ups throughout the level
         this.generatePowerUps();
