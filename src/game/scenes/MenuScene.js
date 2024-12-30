@@ -40,28 +40,234 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        this.cameras.main.setBackgroundColor('#3C3744');
+        // Set FEI STU background color
+        this.cameras.main.setBackgroundColor('#003366');
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+        // Add FEI STU logo text
+        const titleText = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 150,
+            'FEI Jump',
+            {
+                font: 'bold 64px Arial',
+                fill: '#FFFFFF',
+                stroke: '#0066CC',
+                strokeThickness: 6
+            }
+        ).setOrigin(0.5);
+
+        const buttonStyle = {
+            font: 'bold 42px Arial',
+            fill: '#FFFFFF',
+            padding: { x: 50, y: 25 }
+        };
+
+        // Create button backgrounds with graphics
+        const createButtonBackground = (x, y, width, height) => {
+            const graphics = this.add.graphics();
+            graphics.fillStyle(0x0066CC, 1);
+            graphics.lineStyle(2, 0x0088FF, 1);
+            graphics.fillRoundedRect(x - width/2, y - height/2, width, height, 16);
+            graphics.strokeRoundedRect(x - width/2, y - height/2, width, height, 16);
+            return graphics;
+        };
+
+        // Create backgrounds first
+        const easyBg = createButtonBackground(
+            this.cameras.main.centerX, 
+            this.cameras.main.centerY - 30,
+            500,
+            90
+        );
+
+        const hardBg = createButtonBackground(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 110,
+            500,
+            90
+        );
+
+        // Create text on top of backgrounds
         const easyModeText = this.add.text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY - 50,
+            this.cameras.main.centerY - 30,
             'Hrať ľahkú obtiažnosť',
-            {
-                font: '40px Arial',
-                fill: '#ff0'
-            }
+            buttonStyle
         ).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         const hardModeText = this.add.text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY + 50,
+            this.cameras.main.centerY + 110,
             'Hrať ťažkú obtiažnosť',
-            {
-                font: '40px Arial',
-                fill: '#ff0'
-            }
+            buttonStyle
         ).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        // Enhanced hover effects
+        [easyModeText, hardModeText].forEach((text, index) => {
+            const bg = index === 0 ? easyBg : hardBg;
+            
+            // Add constant subtle pulsing animation
+            this.tweens.add({
+                targets: bg,
+                alpha: 0.8,
+                duration: 1500,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+
+            text.on('pointerover', () => {
+                // Stop the pulsing animation
+                this.tweens.killTweensOf(bg);
+                
+                bg.clear();
+                bg.fillStyle(0x003366, 1);
+                bg.lineStyle(4, 0x0088FF, 1);
+                bg.fillRoundedRect(
+                    text.x - 250,
+                    text.y - 45,
+                    500,
+                    90,
+                    16
+                );
+                bg.strokeRoundedRect(
+                    text.x - 250,
+                    text.y - 45,
+                    500,
+                    90,
+                    16
+                );
+
+                // Scale only the text, reduced to 1.1x
+                this.tweens.add({
+                    targets: text,
+                    scaleX: 1.05,
+                    scaleY: 1.05,
+                    duration: 300,
+                    ease: 'Back.easeOut'
+                });
+            });
+
+            text.on('pointerout', () => {
+                bg.clear();
+                bg.fillStyle(0x0066CC, 1);
+                bg.lineStyle(2, 0x0088FF, 1);
+                bg.fillRoundedRect(
+                    text.x - 250,
+                    text.y - 45,
+                    500,
+                    90,
+                    16
+                );
+                bg.strokeRoundedRect(
+                    text.x - 250,
+                    text.y - 45,
+                    500,
+                    90,
+                    16
+                );
+
+                // Return only the text to original scale
+                this.tweens.add({
+                    targets: text,
+                    scaleX: 1,
+                    scaleY: 1,
+                    duration: 300,
+                    ease: 'Back.easeOut'
+                });
+
+                // Restart the pulsing animation
+                this.tweens.add({
+                    targets: bg,
+                    alpha: 0.8,
+                    duration: 1500,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+            });
+        });
+
+        // Update question mark styling for mobile
+        if (this.isMobile) {
+            // Create background for question mark
+            const questionMarkBg = this.add.graphics();
+            questionMarkBg.fillStyle(0x0066CC, 1);
+            questionMarkBg.lineStyle(2, 0x0088FF, 1);
+            questionMarkBg.fillRoundedRect(
+                this.cameras.main.width - 80,
+                20,
+                50,
+                50,
+                12
+            );
+            questionMarkBg.strokeRoundedRect(
+                this.cameras.main.width - 80,
+                20,
+                50,
+                50,
+                12
+            );
+
+            const questionMark = this.add.text(
+                this.cameras.main.width - 55,
+                45,
+                '?',
+                {
+                    font: 'bold 40px Arial',
+                    fill: '#FFFFFF'
+                }
+            ).setOrigin(0.5);
+
+            // Make both the background and text interactive
+            questionMark.setInteractive({ useHandCursor: true });
+            
+            // Add hover effects
+            questionMark.on('pointerover', () => {
+                questionMarkBg.clear();
+                questionMarkBg.fillStyle(0x003366, 1);
+                questionMarkBg.lineStyle(2, 0x0088FF, 1);
+                questionMarkBg.fillRoundedRect(
+                    this.cameras.main.width - 80,
+                    20,
+                    50,
+                    50,
+                    12
+                );
+                questionMarkBg.strokeRoundedRect(
+                    this.cameras.main.width - 80,
+                    20,
+                    50,
+                    50,
+                    12
+                );
+            });
+
+            questionMark.on('pointerout', () => {
+                questionMarkBg.clear();
+                questionMarkBg.fillStyle(0x0066CC, 1);
+                questionMarkBg.lineStyle(2, 0x0088FF, 1);
+                questionMarkBg.fillRoundedRect(
+                    this.cameras.main.width - 80,
+                    20,
+                    50,
+                    50,
+                    12
+                );
+                questionMarkBg.strokeRoundedRect(
+                    this.cameras.main.width - 80,
+                    20,
+                    50,
+                    50,
+                    12
+                );
+            });
+
+            questionMark.on('pointerup', () => {
+                this.showInstructionsOverlay();
+            });
+        }
 
         easyModeText.on('pointerup', async () => {
             // Skontrolujeme, či máme ešte dostupné levely
@@ -164,26 +370,6 @@ export default class MenuScene extends Phaser.Scene {
                 });
             }
         });
-        
-        // If on mobile, you might want to skip the controls scene and go straight to gyroscope
-        if (this.isMobile) {
-            const questionMark = this.add.text(
-                this.cameras.main.width - 80,
-                50,
-                '?',
-                {
-                    font: '50px Arial',
-                    fill: '#ff0',
-                }
-            );
-
-            questionMark.setOrigin(1, 0); // Align to the top right
-            questionMark.setInteractive({ useHandCursor: true });
-
-            questionMark.on('pointerup', () => {
-                this.showInstructionsOverlay();
-            });
-        }
     }
 
     showInstructionsOverlay() {
@@ -193,22 +379,18 @@ export default class MenuScene extends Phaser.Scene {
             this.cameras.main.width,
             this.cameras.main.height,
             0x000000
-        )
-            .setOrigin(0)
-            .setAlpha(0.8)
+        ).setOrigin(0).setAlpha(0.8);
 
-        const instructionsText =
-            `Popis hry
-            
-FEI Jump je jednoduchá skákacia hra. Cieľom hry je dostať sa na
-finálnu platformu bez toho, aby ste spadli. Po ceste budete zbierať
-boostery, ktoré vám pomôžu zdolať jednotlivé semestre našej školy až kým sa nedostanete na vrchol.
-
-Ovládanie:
-  • Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.
-  • Klávesnica (desktop): Šípky vľavo/vpravo alebo klávesy A/D na pohyb.
-  • Gyroskop (mobil): Nakláňajte telefón, aby sa panáčik pohyboval doľava či doprava.
-`;
+        const instructionsText = 
+            `Popis hry\n\n` +
+            `FEI Jump je jednoduchá skákacia hra. Cieľom hry je dostať sa na\n` +
+            `finálnu platformu bez toho, aby ste spadli. Po ceste budete zbierať\n` +
+            `boostery, ktoré vám pomôžu zdolať jednotlivé semestre našej školy až\n` +
+            `kým sa nedostanete na vrchol.\n\n` +
+            `Ovládanie:\n\n` +
+            `🖱️  Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.\n\n` +
+            `⌨️  Klávesnica (desktop): Šípky vľavo/vpravo alebo klávesy A/D na pohyb.\n\n` +
+            `📱  Gyroskop (mobil): Nakláňajte telefón, aby sa panáčik pohyboval doľava či doprava.`;
 
         const instructions = this.add.text(
             this.cameras.main.width / 2,
@@ -218,19 +400,20 @@ Ovládanie:
                 font: '20px Arial',
                 fill: '#ffffff',
                 align: 'center',
-                wordWrap: { width: this.cameras.main.width * 0.8 }
+                lineSpacing: 10,
+                wordWrap: { 
+                    width: this.cameras.main.width * 0.8,
+                    useAdvancedWrap: true
+                }
             }
-        )
-            .setOrigin(0.5);
+        ).setOrigin(0.5);
 
         const closeText = this.add.text(
             this.cameras.main.width / 2,
             instructions.y + instructions.displayHeight / 2 + 40,
             'Zavrieť',
             { font: '24px Arial', fill: '#ff4444' }
-        )
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true });
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         closeText.on('pointerup', () => {
             overlay.destroy();

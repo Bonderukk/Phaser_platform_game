@@ -376,46 +376,87 @@ export default class MainScene extends Phaser.Scene {
     }
 
     showPauseMenu() {
-        // Pozastavíme fyziku v hre, aby sa hráč a platformy prestali hýbať.
+        // Pause physics
         this.physics.world.pause();
-        // Vytvoríme overlay
+        
+        // Create semi-transparent overlay
         this.pauseOverlay = this.add.rectangle(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
+            0,
+            0,
             this.cameras.main.width,
             this.cameras.main.height,
             0x000000,
-            0.7
-        );
-        this.pauseOverlay.setOrigin(0.5);
-        this.pauseOverlay.setScrollFactor(0);
+            0.8
+        ).setOrigin(0).setScrollFactor(0);
+
+        // Title with better styling
         this.pauseText = this.add.text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY - 100,
+            this.cameras.main.centerY - 150,
             'Hra je pozastavená',
-            { font: '32px Arial', fill: '#fff' }
-        );
-        this.pauseText.setOrigin(0.5);
-        this.pauseText.setScrollFactor(0);
-        // Vytvoríme tlačidlo "Ukončiť hru"
+            { 
+                font: 'bold 42px Arial',
+                fill: '#FFFFFF',
+                stroke: '#0066CC',
+                strokeThickness: 6
+            }
+        ).setOrigin(0.5).setScrollFactor(0);
+
+        // Create styled text buttons
+        this.continueButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 20,
+            'Pokračovať',
+            { 
+                font: 'bold 36px Arial', 
+                fill: '#FFFFFF',
+                stroke: '#0066CC',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setScrollFactor(0).setInteractive({ useHandCursor: true });
+
         this.quitButton = this.add.text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY + 80,
+            this.cameras.main.centerY + 70,
             'Ukončiť hru',
-            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
-        );
-        this.quitButton.setOrigin(0.5);
-        this.quitButton.setScrollFactor(0);
-        this.quitButton.setInteractive({ useHandCursor: true });
+            { 
+                font: 'bold 36px Arial', 
+                fill: '#FFFFFF',
+                stroke: '#0066CC',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setScrollFactor(0).setInteractive({ useHandCursor: true });
+
+        this.helpButton = this.add.text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY + 160,
+            'Nápoveda',
+            { 
+                font: 'bold 36px Arial', 
+                fill: '#FFFFFF',
+                stroke: '#0066CC',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setScrollFactor(0).setInteractive({ useHandCursor: true });
+
+        // Add hover effects
+        [this.continueButton, this.quitButton, this.helpButton].forEach(button => {
+            button.on('pointerover', () => {
+                button.setStyle({ fill: '#00ffff' });
+            });
+
+            button.on('pointerout', () => {
+                button.setStyle({ fill: '#FFFFFF' });
+            });
+        });
+
+        // Keep original click handlers
+        this.continueButton.on('pointerup', () => this.resumeGame());
         this.quitButton.on('pointerup', () => {
-            // Get the current level
+            // Original quit logic
             const currentLevel = this.level;
-            
-            // Create copies of the arrays to avoid reference issues
             const levels = [...this.levels];
             const playedLevels = [...this.playedLevels];
-
-            // Remove the current level from available levels if it exists
             const levelIndex = levels.indexOf(currentLevel);
             if (levelIndex > -1) {
                 levels.splice(levelIndex, 1);
@@ -423,50 +464,17 @@ export default class MainScene extends Phaser.Scene {
                     playedLevels.push(currentLevel);
                 }
             }
-
-            console.log('MainScene Quit - Available Levels:', levels);
-            console.log('MainScene Quit - Played Levels:', playedLevels);
-
-            // Save progress to localStorage
             localStorage.setItem('gameProgress', JSON.stringify({
                 levels: levels,
                 playedLevels: playedLevels,
                 lastUpdated: new Date().toISOString()
             }));
-
-            // Go back to menu with updated arrays
             this.scene.start('menu', {
                 levels: levels,
                 playedLevels: playedLevels
             });
         });
-        // Vytvoríme tlačidlo "Pokračovať"
-        this.continueButton = this.add.text(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            'Pokračovať',
-            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
-        );
-        this.continueButton.setOrigin(0.5);
-        this.continueButton.setScrollFactor(0);
-        this.continueButton.setInteractive({ useHandCursor: true });
-        this.continueButton.on('pointerup', () => {
-            this.resumeGame();
-        });
-
-        // Tlačidlo "Nápoveda"
-        this.helpButton = this.add.text(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY + 160,
-            'Nápoveda',
-            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
-        );
-        this.helpButton.setOrigin(0.5);
-        this.helpButton.setScrollFactor(0);
-        this.helpButton.setInteractive({ useHandCursor: true });
-        this.helpButton.on('pointerup', () => {
-            this.showHelp();
-        });
+        this.helpButton.on('pointerup', () => this.showHelp());
 
         this.pauseButton.setVisible(false);
     }
@@ -534,24 +542,19 @@ export default class MainScene extends Phaser.Scene {
             this.cameras.main.height,
             0x000000,
             0.8
-        );
-        this.helpOverlay.setOrigin(0.5);
-        this.helpOverlay.setScrollFactor(0);
+        ).setOrigin(0.5).setScrollFactor(0);
 
-        // Inštrukcie
-        const helpTextContent =
-            'Ovládanie:\n' +
-            '- Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.\n' +
-            '- Klávesnica (desktop): Použite šípky vľavo/vpravo alebo klávesy A/D na pohyb.\n' +
-            '- Gyroskop (mobil): Nakláňajte telefón, aby sa panáčik pohyboval doľava či doprava.\n\n' +
-            'Boostery:\n' +
-            '- Red Bull: Dočasne zvýši výšku skoku.\n' +
-            '- Cigarety: Dočasne znížia rýchlosť pádu.';
-
+        // Title
         this.helpText = this.add.text(
             this.cameras.main.centerX,
             this.cameras.main.centerY - 100,
-            helpTextContent,
+            'Ovládanie:\n\n' +
+            '🖱️ Myš (desktop): Panáčik sa hýbe podľa pozície kurzora.\n\n' +
+            '⌨️ Klávesnica (desktop): Použite šípky vľavo/vpravo alebo klávesy A/D na pohyb.\n\n' +
+            '📱 Gyroskop (mobil): Nakláňajte telefón, aby sa panáčik pohyboval doľava či doprava.\n\n' +
+            'Boostery:\n\n' +
+            '⚡ Red Bull: Dočasne zvýši výšku skoku.\n\n' +
+            '🌫️ Cigarety: Dočasne zníži rýchlosť pádu.',
             {
                 font: '18px Arial',
                 fill: '#fff',
@@ -562,16 +565,29 @@ export default class MainScene extends Phaser.Scene {
         this.helpText.setOrigin(0.5, 0.5);
         this.helpText.setScrollFactor(0);
 
-        // Tlačidlo "Zavrieť"
+        // Close button
         this.closeHelpButton = this.add.text(
             this.cameras.main.centerX,
             this.cameras.main.centerY + 140,
             'Zavrieť',
-            { font: '24px Arial', fill: '#fff', backgroundColor: '#4a4a4a', padding: { x: 20, y: 10 } }
-        );
-        this.closeHelpButton.setOrigin(0.5);
-        this.closeHelpButton.setScrollFactor(0);
-        this.closeHelpButton.setInteractive({ useHandCursor: true });
+            { 
+                font: 'bold 32px Arial',
+                fill: '#FFFFFF',
+                stroke: '#0066CC',
+                strokeThickness: 4
+            }
+        ).setOrigin(0.5).setScrollFactor(0)
+         .setInteractive({ useHandCursor: true });
+
+        // Add hover effect
+        this.closeHelpButton.on('pointerover', () => {
+            this.closeHelpButton.setStyle({ fill: '#00ffff' });
+        });
+
+        this.closeHelpButton.on('pointerout', () => {
+            this.closeHelpButton.setStyle({ fill: '#FFFFFF' });
+        });
+
         this.closeHelpButton.on('pointerup', () => {
             this.helpOverlay.destroy();
             this.helpText.destroy();
